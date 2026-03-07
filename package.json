@@ -1,0 +1,29 @@
+{
+  "name": "com.haruchanz64.game-balancer",
+  "version": "1.0.0",
+  "displayName": "GameBalancer",
+  "description": "Unity 6 UI Toolkit workbench for progression curve modeling, loot and pity Monte Carlo odds analysis, combat TTK matchup matrices, faucet/sink economy simulation, and extensible custom modules.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "keywords": [
+    "game-design",
+    "balancing",
+    "monte-carlo",
+    "progression",
+    "loot-table",
+    "economy",
+    "ui-toolkit",
+    "unity-tool"
+  ],
+  "author": {
+    "name": "haruchanz64",
+    "url": "https://haruchanz64.github.io"
+  },
+  "samples": [
+    {
+      "displayName": "RPG Balance Demo & Custom Module",
+      "description": "Zero-dependency demo asset generator for curves, loot/pity, combat archetypes, economy flows, and a custom IGameBalancerModule example.",
+      "path": "Samples~/RpgBalanceDemo"
+    }
+  ]
+}
