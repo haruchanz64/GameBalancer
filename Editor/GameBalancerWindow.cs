@@ -24,7 +24,7 @@ namespace GameBalancer.Editor
         private GameBalancerHost _host;
         private IGameBalancerModule _activeModule;
 
-        [MenuItem("Tools/GameBalancer/Balance Workbench", false, 10)]
+        [MenuItem("Tools/HaruChanZ64/Gameplay/GameBalancer/Balance Workbench", false, 136)]
         public static void ShowWindow()
         {
             var window = GetWindow<GameBalancerWindow>("GameBalancer");

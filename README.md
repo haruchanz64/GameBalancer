@@ -23,7 +23,7 @@ The Editor interface uses UI Toolkit and `Painter2D` vector charts, and automati
 
 ## Quick start
 
-1. Open **Tools > GameBalancer > Balance Workbench**.
+1. Open **Tools > HaruChanZ64 > Gameplay > GameBalancer > Balance Workbench**.
 2. Select any of the four built-in modules in the sidebar. Each module runs with built-in demo data when no asset is assigned.
 3. To save project-specific configurations, create assets via **Assets > Create > GameBalancer** (`Progression Curve`, `Loot Table`, `Combatant Profile`, or `Economy Model`) and click **Open in GameBalancer** from the Inspector.
 
