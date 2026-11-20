@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace GameBalancer.Curves
 {
+    /// <summary>
+    /// Evaluated sample values and summary statistics for a single progression curve across a level range.
+    /// </summary>
     [Serializable]
     public sealed class CurveSeriesData
     {
@@ -13,6 +16,10 @@ namespace GameBalancer.Curves
         public double totalSum;
     }
 
+    /// <summary>
+    /// Multi-curve comparison report containing evaluated level samples, per-series aggregates,
+    /// and an optional derived ratio series.
+    /// </summary>
     [Serializable]
     public sealed class CurveComparisonReport
     {
@@ -30,6 +37,16 @@ namespace GameBalancer.Curves
     /// </summary>
     public static class CurveComparison
     {
+        /// <summary>
+        /// Evaluates every non-null curve in <paramref name="curves"/> across [<paramref name="minLevel"/>, <paramref name="maxLevel"/>]
+        /// and optionally computes an element-wise ratio between two series.
+        /// </summary>
+        /// <param name="curves">Ordered collection of progression curves to evaluate; null entries are skipped.</param>
+        /// <param name="minLevel">Inclusive starting level (clamped to at least 1).</param>
+        /// <param name="maxLevel">Inclusive ending level (clamped to at least the start level).</param>
+        /// <param name="ratioNumeratorIndex">Zero-based index in the evaluated series list for the ratio numerator, or -1 to omit ratio calculation.</param>
+        /// <param name="ratioDenominatorIndex">Zero-based index in the evaluated series list for the ratio denominator, or -1 to omit ratio calculation. Denominators within 1e-9 of zero yield 0.</param>
+        /// <returns>Populated <see cref="CurveComparisonReport"/> covering the requested level range.</returns>
         public static CurveComparisonReport Evaluate(
             IReadOnlyList<IProgressionCurve> curves,
             int minLevel,

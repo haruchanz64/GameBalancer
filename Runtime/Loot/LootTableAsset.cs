@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace GameBalancer.Loot
 {
+    /// <summary>
+    /// Single weighted drop entry inside a <see cref="LootTableAsset"/>.
+    /// </summary>
     [Serializable]
     public sealed class WeightedLootEntry
     {
@@ -17,6 +20,9 @@ namespace GameBalancer.Loot
         public UnityEngine.Object assetReference;
     }
 
+    /// <summary>
+    /// Soft and hard pity configuration targeting a specific rarity tier on consecutive non-target pulls.
+    /// </summary>
     [Serializable]
     public sealed class PityRule
     {
@@ -51,6 +57,10 @@ namespace GameBalancer.Loot
             hardPityPull = 75
         };
 
+        /// <summary>
+        /// Computes the sum of all positive entry weights in <see cref="entries"/>.
+        /// </summary>
+        /// <returns>Total positive weight, or <c>0</c> if <see cref="entries"/> is null or empty.</returns>
         public double GetTotalWeight()
         {
             double total = 0d;

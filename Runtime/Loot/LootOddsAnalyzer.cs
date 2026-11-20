@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace GameBalancer.Loot
 {
+    /// <summary>
+    /// Theoretical versus simulated drop statistics for a single entry in a <see cref="LootAnalysisReport"/>.
+    /// </summary>
     [Serializable]
     public sealed class LootEntryAnalysis
     {
@@ -16,6 +19,10 @@ namespace GameBalancer.Loot
         public double deviationPercent;
     }
 
+    /// <summary>
+    /// Summary report produced by <see cref="LootOddsAnalyzer"/> comparing theoretical probabilities,
+    /// Monte Carlo drop distributions, expected value per roll, and pulls-to-target percentiles.
+    /// </summary>
     [Serializable]
     public sealed class LootAnalysisReport
     {
@@ -42,6 +49,14 @@ namespace GameBalancer.Loot
     /// </summary>
     public static class LootOddsAnalyzer
     {
+        /// <summary>
+        /// Analyzes a <see cref="LootTableAsset"/> using exact theoretical weights and Monte Carlo simulation.
+        /// </summary>
+        /// <param name="table">Loot table asset to analyze.</param>
+        /// <param name="trialCount">Number of simulated rolls (clamped to at least 100).</param>
+        /// <param name="targetRarityOverride">Optional rarity name used to track pulls-to-target; defaults to the table's pity target rarity.</param>
+        /// <param name="seed">Optional PRNG seed for reproducible results.</param>
+        /// <returns>Completed <see cref="LootAnalysisReport"/>.</returns>
         public static LootAnalysisReport Analyze(
             LootTableAsset table,
             int trialCount = 50000,
@@ -58,6 +73,16 @@ namespace GameBalancer.Loot
                 seed);
         }
 
+        /// <summary>
+        /// Analyzes raw weighted entries and an optional <see cref="PityRule"/> across a Monte Carlo trial batch.
+        /// </summary>
+        /// <param name="tableName">Display label recorded in the report.</param>
+        /// <param name="entries">Weighted entries to evaluate.</param>
+        /// <param name="pityRule">Optional soft/hard pity configuration; pass <c>null</c> for pure weighted odds.</param>
+        /// <param name="trialCount">Number of simulated rolls (clamped to at least 100).</param>
+        /// <param name="targetRarityOverride">Optional rarity name for pulls-to-target percentiles; overrides <see cref="PityRule.targetRarity"/> when non-empty.</param>
+        /// <param name="seed">Optional PRNG seed for deterministic output.</param>
+        /// <returns>Completed <see cref="LootAnalysisReport"/>.</returns>
         public static LootAnalysisReport Analyze(
             string tableName,
             IReadOnlyList<WeightedLootEntry> entries,
@@ -176,6 +201,9 @@ namespace GameBalancer.Loot
             return report;
         }
 
+        /// <summary>
+        /// Returns the nearest-rank percentile value from an ascending sorted list of pull counts.
+        /// </summary>
         private static int Percentile(List<int> sorted, double p)
         {
             if (sorted.Count == 0) return 0;

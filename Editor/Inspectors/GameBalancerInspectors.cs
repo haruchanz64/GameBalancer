@@ -9,8 +9,19 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.Inspectors
 {
+    /// <summary>
+    /// Shared UI Toolkit inspector builder that appends a live summary card and an Open in GameBalancer button.
+    /// </summary>
     internal static class GameBalancerInspectorHelper
     {
+        /// <summary>
+        /// Renders the default serialized inspector for <paramref name="editor"/> followed by a styled summary card
+        /// with a button that opens <see cref="GameBalancerWindow"/> targeted at the inspected asset.
+        /// </summary>
+        /// <param name="editor">Active custom editor instance.</param>
+        /// <param name="summaryText">Multi-line preview text shown above the launch button.</param>
+        /// <param name="buttonLabel">Text displayed on the Workbench launch button.</param>
+        /// <returns>Complete inspector root <see cref="VisualElement"/>.</returns>
         public static VisualElement BuildInspector(UnityEditor.Editor editor, string summaryText, string buttonLabel)
         {
             var root = new VisualElement();
@@ -59,9 +70,13 @@ namespace GameBalancer.Editor.Inspectors
         }
     }
 
+    /// <summary>
+    /// Custom UI Toolkit inspector for <see cref="ProgressionCurveAsset"/> showing level 1, 10, and 50 value previews.
+    /// </summary>
     [CustomEditor(typeof(ProgressionCurveAsset))]
     public sealed class ProgressionCurveAssetEditor : UnityEditor.Editor
     {
+        /// <inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             var asset = (ProgressionCurveAsset)target;
@@ -71,9 +86,13 @@ namespace GameBalancer.Editor.Inspectors
         }
     }
 
+    /// <summary>
+    /// Custom UI Toolkit inspector for <see cref="LootTableAsset"/> showing entry count, total weight, and pity thresholds.
+    /// </summary>
     [CustomEditor(typeof(LootTableAsset))]
     public sealed class LootTableAssetEditor : UnityEditor.Editor
     {
+        /// <inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             var asset = (LootTableAsset)target;
@@ -83,9 +102,13 @@ namespace GameBalancer.Editor.Inspectors
         }
     }
 
+    /// <summary>
+    /// Custom UI Toolkit inspector for <see cref="CombatantProfileAsset"/> showing level 1 and level 20 stat snapshots.
+    /// </summary>
     [CustomEditor(typeof(CombatantProfileAsset))]
     public sealed class CombatantProfileAssetEditor : UnityEditor.Editor
     {
+        /// <inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             var asset = (CombatantProfileAsset)target;
@@ -98,9 +121,13 @@ namespace GameBalancer.Editor.Inspectors
         }
     }
 
+    /// <summary>
+    /// Custom UI Toolkit inspector for <see cref="EconomyModelAsset"/> showing currency and flow node counts.
+    /// </summary>
     [CustomEditor(typeof(EconomyModelAsset))]
     public sealed class EconomyModelAssetEditor : UnityEditor.Editor
     {
+        /// <inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             var asset = (EconomyModelAsset)target;

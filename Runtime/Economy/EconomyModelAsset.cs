@@ -4,19 +4,33 @@ using UnityEngine;
 
 namespace GameBalancer.Economy
 {
+    /// <summary>
+    /// Direction of currency movement for an <see cref="EconomyFlowNode"/>.
+    /// </summary>
     public enum EconomyFlowKind
     {
+        /// <summary>Adds currency to a player's balance (income).</summary>
         Faucet = 0,
+        /// <summary>Removes currency from a player's balance (expense).</summary>
         Sink = 1
     }
 
+    /// <summary>
+    /// Schedule controlling which simulated days an <see cref="EconomyFlowNode"/> fires on.
+    /// </summary>
     public enum EconomyCadence
     {
+        /// <summary>Triggers on every day in the simulation horizon.</summary>
         EveryDay = 0,
+        /// <summary>Triggers whenever <c>day % intervalOrDay == 0</c>.</summary>
         EveryNDays = 1,
+        /// <summary>Triggers once on the exact day matching <see cref="EconomyFlowNode.intervalOrDay"/>.</summary>
         OneTimeOnDay = 2
     }
 
+    /// <summary>
+    /// Defines a tracked resource currency, starting balance, optional cap, and inflation alert threshold.
+    /// </summary>
     [Serializable]
     public sealed class CurrencyDefinition
     {
@@ -27,6 +41,9 @@ namespace GameBalancer.Economy
         public double inflationAlertThreshold = 50000d;
     }
 
+    /// <summary>
+    /// Single recurring or one-time currency faucet or sink evaluated during economy simulation.
+    /// </summary>
     [Serializable]
     public sealed class EconomyFlowNode
     {

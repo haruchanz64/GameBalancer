@@ -10,13 +10,24 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.Modules
 {
+    /// <summary>
+    /// Built-in GameBalancer Workbench module for running round-robin combat simulations across
+    /// <see cref="CombatantProfileAsset"/> rosters and rendering Win-Rate/TTK heatmaps and outlier alerts.
+    /// </summary>
     public sealed class CombatMatrixModule : IGameBalancerModule
     {
+        /// <inheritdoc/>
         public string ModuleId => "builtin.combat";
+        /// <inheritdoc/>
         public string DisplayName => "Combat Matrix";
+        /// <inheritdoc/>
         public string Description => "Run Monte Carlo round-robin duels across combat archetypes to generate Win-Rate and Time-to-Kill heatmaps.";
+        /// <inheritdoc/>
         public int SortOrder => 30;
 
+        /// <summary>
+        /// In-memory <see cref="ICombatStatSource"/> used for the fallback 4-archetype demo roster.
+        /// </summary>
         private sealed class StaticCombatant : ICombatStatSource
         {
             public string DisplayName { get; }
@@ -68,6 +79,7 @@ namespace GameBalancer.Editor.Modules
         private VisualElement _outliersContainer;
         private MatchupMatrixReport _lastReport;
 
+        /// <inheritdoc/>
         public VisualElement CreateView(GameBalancerHost host)
         {
             _host = host;
@@ -137,8 +149,10 @@ namespace GameBalancer.Editor.Modules
             return root;
         }
 
+        /// <inheritdoc/>
         public void OnRefresh() => RunMatrix();
 
+        /// <inheritdoc/>
         public bool TryAcceptAsset(UnityEngine.Object asset)
         {
             if (asset is CombatantProfileAsset profile && _rosterListContainer != null)
@@ -154,12 +168,18 @@ namespace GameBalancer.Editor.Modules
             return false;
         }
 
+        /// <summary>
+        /// Appends an unassigned roster slot to the combatant list UI.
+        /// </summary>
         private void AddEmptyRosterSlot()
         {
             _rosterAssets.Add(null);
             RebuildRosterSlots();
         }
 
+        /// <summary>
+        /// Rebuilds the dynamic list of <see cref="CombatantProfileAsset"/> slot pickers or displays the demo roster hint.
+        /// </summary>
         private void RebuildRosterSlots()
         {
             _rosterListContainer.Clear();
@@ -194,6 +214,10 @@ namespace GameBalancer.Editor.Modules
             }
         }
 
+        /// <summary>
+        /// Runs <see cref="MatchupMatrixRunner.RunMatrix"/> using assigned profiles (falling back to the 4-archetype
+        /// demo roster when fewer than two assets are assigned) and refreshes the heatmap and outlier list.
+        /// </summary>
         private void RunMatrix()
         {
             if (_matrixContainer == null) return;
@@ -224,6 +248,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Simulated {_lastReport.rosterNames.Count}x{_lastReport.rosterNames.Count} matrix ({_lastReport.trialsPerMatchup} duels/pair) at Lv {_lastReport.level}.");
         }
 
+        /// <summary>
+        /// Builds the color-coded N x N Win-Rate and average TTK grid with per-cell tooltips.
+        /// </summary>
         private void RenderHeatmap()
         {
             _matrixContainer.Clear();
@@ -266,6 +293,9 @@ namespace GameBalancer.Editor.Modules
             }
         }
 
+        /// <summary>
+        /// Renders flagged balance outlier alerts or a confirmation notice when all non-mirror matchups are in range.
+        /// </summary>
         private void RenderOutliers()
         {
             _outliersContainer.Clear();
@@ -285,6 +315,9 @@ namespace GameBalancer.Editor.Modules
             }
         }
 
+        /// <summary>
+        /// Maps a cell's win rate and mirror status to theme-aware neutral, overpowered, underpowered, or balanced tints.
+        /// </summary>
         private static Color GetHeatmapColor(MatchupCellResult cell, bool isMirror)
         {
             bool dark = EditorGUIUtility.isProSkin;
@@ -311,6 +344,9 @@ namespace GameBalancer.Editor.Modules
                 : new Color(0.68f, 0.90f, 0.74f, 0.90f);
         }
 
+        /// <summary>
+        /// Copies the Markdown matchup matrix table to the system clipboard.
+        /// </summary>
         private void CopyMarkdown()
         {
             if (_lastReport == null) return;
@@ -318,6 +354,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus("Copied Combat Matrix Markdown table to clipboard.");
         }
 
+        /// <summary>
+        /// Opens a save dialog and writes the latest <see cref="MatchupMatrixReport"/> as JSON.
+        /// </summary>
         private void ExportJson()
         {
             if (_lastReport == null) return;
@@ -327,6 +366,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Exported JSON to {path}");
         }
 
+        /// <summary>
+        /// Builds the built-in 4-archetype demo roster (Vanguard, Rogue, Mage, Berserker).
+        /// </summary>
         private static List<ICombatStatSource> BuildDefaultRoster() => new List<ICombatStatSource>
         {
             new StaticCombatant("Vanguard",  240, 22, 26, 0.95, 0.10, 0.05, 30, 3.0, 3.0),

@@ -1,6 +1,6 @@
 {
   "name": "com.haruchanz64.game-balancer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "GameBalancer",
   "description": "Unity 6 UI Toolkit workbench for progression curve modeling, loot and pity Monte Carlo odds analysis, combat TTK matchup matrices, faucet/sink economy simulation, and extensible custom modules.",
   "unity": "6000.0",

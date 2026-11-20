@@ -11,11 +11,19 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.Modules
 {
+    /// <summary>
+    /// Built-in GameBalancer Workbench module for simulating multi-day currency faucets and sinks,
+    /// plotting balance and flow timelines, and surfacing inflation or starvation alerts.
+    /// </summary>
     public sealed class EconomyModule : IGameBalancerModule
     {
+        /// <inheritdoc/>
         public string ModuleId => "builtin.economy";
+        /// <inheritdoc/>
         public string DisplayName => "Economy Flow";
+        /// <inheritdoc/>
         public string Description => "Simulate multi-day currency faucets and sinks to catch hyperinflation or mandatory-sink starvation.";
+        /// <inheritdoc/>
         public int SortOrder => 40;
 
         private GameBalancerHost _host;
@@ -26,6 +34,7 @@ namespace GameBalancer.Editor.Modules
         private VisualElement _alertsContainer;
         private EconomySimulationReport _lastReport;
 
+        /// <inheritdoc/>
         public VisualElement CreateView(GameBalancerHost host)
         {
             _host = host;
@@ -82,8 +91,10 @@ namespace GameBalancer.Editor.Modules
             return root;
         }
 
+        /// <inheritdoc/>
         public void OnRefresh() => RunSimulation();
 
+        /// <inheritdoc/>
         public bool TryAcceptAsset(UnityEngine.Object asset)
         {
             if (asset is EconomyModelAsset model && _modelField != null)
@@ -94,6 +105,10 @@ namespace GameBalancer.Editor.Modules
             return false;
         }
 
+        /// <summary>
+        /// Simulates the assigned <see cref="EconomyModelAsset"/> (or a temporary default instance when unassigned)
+        /// across the selected day horizon and updates the UI.
+        /// </summary>
         private void RunSimulation()
         {
             if (_chart == null) return;
@@ -114,6 +129,10 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Simulated '{_lastReport.modelName}' over {_lastReport.horizonDays} days.");
         }
 
+        /// <summary>
+        /// Renders KPI cards, balance/inflow/outflow chart series, inflation threshold line, and diagnostic warnings
+        /// for the primary currency in <see cref="_lastReport"/>.
+        /// </summary>
         private void RenderReport(EconomyModelAsset asset)
         {
             _kpiRow.Clear();
@@ -188,6 +207,9 @@ namespace GameBalancer.Editor.Modules
             _kpiRow.Add(card);
         }
 
+        /// <summary>
+        /// Opens a save dialog and exports the primary currency timeline as CSV.
+        /// </summary>
         private void ExportCsv()
         {
             if (_lastReport == null) return;
@@ -197,6 +219,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Exported CSV to {path}");
         }
 
+        /// <summary>
+        /// Opens a save dialog and exports the full <see cref="EconomySimulationReport"/> as JSON.
+        /// </summary>
         private void ExportJson()
         {
             if (_lastReport == null) return;

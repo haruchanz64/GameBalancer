@@ -15,6 +15,12 @@ namespace GameBalancer.Export
     /// </summary>
     public static class BalanceReportExporter
     {
+        /// <summary>
+        /// Serializes a <see cref="CurveComparisonReport"/> to invariant-culture CSV with a <c>Level</c> column,
+        /// one column per curve series, and an optional ratio column.
+        /// </summary>
+        /// <param name="report">Curve comparison report to export.</param>
+        /// <returns>CSV text formatted with four decimal places.</returns>
         public static string CurvesToCsv(CurveComparisonReport report)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
@@ -49,6 +55,12 @@ namespace GameBalancer.Export
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Formats a <see cref="LootAnalysisReport"/> as a Markdown summary including expected value,
+        /// pulls-to-target percentiles, and a per-entry theoretical vs. simulated table.
+        /// </summary>
+        /// <param name="report">Loot analysis report to format.</param>
+        /// <returns>GitHub-flavored Markdown string.</returns>
         public static string LootToMarkdown(LootAnalysisReport report)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
@@ -76,6 +88,11 @@ namespace GameBalancer.Export
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Formats a <see cref="MatchupMatrixReport"/> as a Markdown win-rate/TTK table with an optional flagged outliers section.
+        /// </summary>
+        /// <param name="report">Combat matchup report to format.</param>
+        /// <returns>GitHub-flavored Markdown string.</returns>
         public static string CombatMatrixToMarkdown(MatchupMatrixReport report)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
@@ -126,6 +143,12 @@ namespace GameBalancer.Export
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Serializes a single currency timeline from an <see cref="EconomySimulationReport"/> to invariant-culture CSV.
+        /// </summary>
+        /// <param name="report">Economy simulation report to export.</param>
+        /// <param name="currencyIndex">Zero-based index into <see cref="EconomySimulationReport.currencies"/>.</param>
+        /// <returns>CSV string with daily balance columns, or an empty string if <paramref name="currencyIndex"/> is out of range.</returns>
         public static string EconomyToCsv(EconomySimulationReport report, int currencyIndex = 0)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
@@ -150,11 +173,21 @@ namespace GameBalancer.Export
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Serializes any Unity-serializable GameBalancer report object to JSON via <see cref="JsonUtility"/>.
+        /// </summary>
+        /// <typeparam name="T">Serializable report type.</typeparam>
+        /// <param name="report">Report instance to serialize.</param>
+        /// <param name="prettyPrint">When <c>true</c>, formats JSON with indentation.</param>
+        /// <returns>Serialized JSON string.</returns>
         public static string ToJson<T>(T report, bool prettyPrint = true)
         {
             return JsonUtility.ToJson(report, prettyPrint);
         }
 
+        /// <summary>
+        /// Wraps a CSV field in quotes and doubles embedded quotes when it contains commas, quotes, or newlines.
+        /// </summary>
         private static string EscapeCsv(string value)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;

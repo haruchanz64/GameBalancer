@@ -6,10 +6,20 @@ namespace GameBalancer.Math
 {
     /// <summary>
     /// Zero-dependency recursive-descent math expression parser and evaluator.
-    /// Supports +, -, *, /, ^, unary -, parentheses, named variables, and common math functions.
+    /// Supports <c>+</c>, <c>-</c>, <c>*</c>, <c>/</c>, right-associative <c>^</c>, unary signs,
+    /// parentheses, named variables, constants (<c>pi</c>, <c>e</c>), and common math functions.
     /// </summary>
     public static class MathExpressionEvaluator
     {
+        /// <summary>
+        /// Parses and evaluates a math expression using the supplied variable map.
+        /// Rejects division by near-zero values (&lt; 1e-12), trailing tokens, <c>NaN</c>, and infinity.
+        /// </summary>
+        /// <param name="expression">Formula string to evaluate.</param>
+        /// <param name="variables">Optional dictionary of variable values; lookups fall back to case-insensitive matching.</param>
+        /// <param name="result">Computed finite result when evaluation succeeds, or <c>0</c> on failure.</param>
+        /// <param name="error">Human-readable parse or evaluation error message on failure, or <c>null</c> on success.</param>
+        /// <returns><c>true</c> if the expression parsed and evaluated to a finite number; otherwise <c>false</c>.</returns>
         public static bool TryEvaluate(
             string expression,
             IReadOnlyDictionary<string, double> variables,
@@ -51,6 +61,13 @@ namespace GameBalancer.Math
             }
         }
 
+        /// <summary>
+        /// Evaluates a math expression and returns <paramref name="fallback"/> if parsing or evaluation fails.
+        /// </summary>
+        /// <param name="expression">Formula string to evaluate.</param>
+        /// <param name="variables">Optional dictionary of named variable values.</param>
+        /// <param name="fallback">Default value returned when evaluation fails.</param>
+        /// <returns>The evaluated finite result, or <paramref name="fallback"/> on error.</returns>
         public static double EvaluateOrDefault(
             string expression,
             IReadOnlyDictionary<string, double> variables,
@@ -85,6 +102,9 @@ namespace GameBalancer.Math
                 }
             }
 
+            /// <summary>
+            /// Parses additive expressions (<c>+</c> and <c>-</c>) left-to-right.
+            /// </summary>
             public double ParseExpression()
             {
                 double left = ParseTerm();
@@ -107,6 +127,9 @@ namespace GameBalancer.Math
                 return left;
             }
 
+            /// <summary>
+            /// Parses multiplicative expressions (<c>*</c> and <c>/</c>) left-to-right, rejecting divisors smaller than 1e-12.
+            /// </summary>
             private double ParseTerm()
             {
                 double left = ParsePower();
@@ -134,6 +157,9 @@ namespace GameBalancer.Math
                 return left;
             }
 
+            /// <summary>
+            /// Parses exponentiation (<c>^</c>) right-associatively so <c>2 ^ 3 ^ 2</c> evaluates as <c>2 ^ (3 ^ 2)</c>.
+            /// </summary>
             private double ParsePower()
             {
                 double left = ParseUnary();
@@ -147,6 +173,9 @@ namespace GameBalancer.Math
                 return left;
             }
 
+            /// <summary>
+            /// Parses leading unary <c>+</c> and <c>-</c> operators before a primary expression.
+            /// </summary>
             private double ParseUnary()
             {
                 SkipWhitespace();
@@ -155,6 +184,9 @@ namespace GameBalancer.Math
                 return ParsePrimary();
             }
 
+            /// <summary>
+            /// Parses a parenthesized sub-expression, numeric literal, constant, variable, or function call.
+            /// </summary>
             private double ParsePrimary()
             {
                 SkipWhitespace();
@@ -188,6 +220,9 @@ namespace GameBalancer.Math
                 throw new FormatException($"Unexpected token '{c}' at index {_pos}.");
             }
 
+            /// <summary>
+            /// Parses an invariant-culture floating-point literal starting at the current cursor position.
+            /// </summary>
             private double ParseNumber()
             {
                 int start = _pos;
@@ -219,6 +254,9 @@ namespace GameBalancer.Math
                 return value;
             }
 
+            /// <summary>
+            /// Parses an identifier as either a built-in function call, a math constant (<c>pi</c>, <c>e</c>), or a named variable.
+            /// </summary>
             private double ParseIdentifierOrFunction()
             {
                 int start = _pos;
@@ -271,6 +309,10 @@ namespace GameBalancer.Math
                 throw new FormatException($"Unknown variable '{ident}' at index {start}.");
             }
 
+            /// <summary>
+            /// Dispatches built-in math function calls (<c>pow</c>, <c>sqrt</c>, <c>abs</c>, <c>floor</c>, <c>ceil</c>,
+            /// <c>round</c>, <c>exp</c>, <c>ln</c>, <c>log</c>, <c>min</c>, <c>max</c>, <c>clamp</c>, <c>lerp</c>, <c>smoothstep</c>).
+            /// </summary>
             private static double InvokeFunction(string name, List<double> args)
             {
                 string lower = name.ToLowerInvariant();

@@ -4,22 +4,40 @@ using GameBalancer.Math;
 
 namespace GameBalancer.Combat
 {
+    /// <summary>
+    /// Built-in damage mitigation formulas used when no <see cref="IDamageFormula"/> override is supplied.
+    /// </summary>
     public enum DamageFormulaMode
     {
+        /// <summary>Hyperbolic armor mitigation: <c>attack * (armorConstant / (armorConstant + defense))</c>.</summary>
         ArmorPercentage = 0,
+        /// <summary>Flat subtraction: <c>attack - defense</c> clamped to <see cref="CombatSimulationOptions.minDamageFloor"/>.</summary>
         FlatReduction = 1,
+        /// <summary>Evaluates <see cref="CombatSimulationOptions.customFormulaExpression"/> with <c>atk</c>, <c>def</c>, <c>hp</c>, and <c>level</c>.</summary>
         CustomExpression = 2
     }
 
+    /// <summary>
+    /// Configuration options controlling damage mitigation and timeout bounds for <see cref="CombatSimulator"/>.
+    /// </summary>
     [Serializable]
     public struct CombatSimulationOptions
     {
+        /// <summary>Active built-in damage formula mode (ignored when a custom <see cref="IDamageFormula"/> is passed).</summary>
         public DamageFormulaMode formulaMode;
+        /// <summary>Half-mitigation armor constant <c>K</c> used by <see cref="DamageFormulaMode.ArmorPercentage"/> (defaults to 100 when &lt;= 0).</summary>
         public double armorConstant;
+        /// <summary>Minimum damage dealt by any non-dodged hit.</summary>
         public double minDamageFloor;
+        /// <summary>Math expression evaluated in <see cref="DamageFormulaMode.CustomExpression"/> mode.</summary>
         public string customFormulaExpression;
+        /// <summary>Maximum simulated duel time in seconds before declaring a draw/timeout (defaults to 120 when &lt;= 0).</summary>
         public double maxDuelDurationSeconds;
 
+        /// <summary>
+        /// Default options using <see cref="DamageFormulaMode.ArmorPercentage"/> with armor constant 100,
+        /// minimum damage 1, and a 120-second duel timeout.
+        /// </summary>
         public static CombatSimulationOptions Default => new CombatSimulationOptions
         {
             formulaMode = DamageFormulaMode.ArmorPercentage,
@@ -30,14 +48,27 @@ namespace GameBalancer.Combat
         };
     }
 
+    /// <summary>
+    /// Result of a single simulated duel between two combatants.
+    /// </summary>
     public readonly struct DuelResult
     {
         /// <summary>1 if A won, -1 if B won, 0 if draw/timeout.</summary>
         public readonly int Winner;
+        /// <summary>Simulated combat duration in seconds until defeat or timeout.</summary>
         public readonly double DurationSeconds;
+        /// <summary>Remaining health percentage of the winner in [0, 100], or 0 on timeout.</summary>
         public readonly double WinnerRemainingHpPercent;
+        /// <summary><c>true</c> if neither combatant fell before <see cref="CombatSimulationOptions.maxDuelDurationSeconds"/>.</summary>
         public readonly bool TimedOut;
 
+        /// <summary>
+        /// Creates a duel outcome record.
+        /// </summary>
+        /// <param name="winner">1 for combatant A, -1 for combatant B, or 0 for draw/timeout.</param>
+        /// <param name="durationSeconds">Elapsed simulated seconds.</param>
+        /// <param name="winnerRemainingHpPercent">Winner's remaining HP percentage (0 to 100).</param>
+        /// <param name="timedOut">Whether the duel reached the duration limit.</param>
         public DuelResult(int winner, double durationSeconds, double winnerRemainingHpPercent, bool timedOut)
         {
             Winner = winner;
@@ -55,11 +86,25 @@ namespace GameBalancer.Combat
         private readonly System.Random _rng;
         private readonly Dictionary<string, double> _exprVars = new Dictionary<string, double>(6, StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Initializes a new <see cref="CombatSimulator"/> with an optional fixed PRNG seed.
+        /// </summary>
+        /// <param name="seed">Optional seed for deterministic combat outcomes; omit for time-based seeding.</param>
         public CombatSimulator(int? seed = null)
         {
             _rng = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
         }
 
+        /// <summary>
+        /// Simulates a 1v1 discrete-event duel between combatants <paramref name="a"/> and <paramref name="b"/>
+        /// by stepping directly to each attack timestamp, applying continuous HP regeneration between events.
+        /// Simultaneous attack timestamps tie-break uniformly at random so mirror matchups stay symmetric.
+        /// </summary>
+        /// <param name="a">Stats for combatant A.</param>
+        /// <param name="b">Stats for combatant B.</param>
+        /// <param name="options">Damage formula and duel timeout configuration.</param>
+        /// <param name="customFormula">Optional custom damage formula overriding <see cref="CombatSimulationOptions.formulaMode"/>.</param>
+        /// <returns>Outcome containing winner, duration in seconds, remaining HP percentage, and timeout status.</returns>
         public DuelResult SimulateDuel(
             in CombatStatSnapshot a,
             in CombatStatSnapshot b,
@@ -130,6 +175,14 @@ namespace GameBalancer.Combat
             return new DuelResult(0, now, 0d, true);
         }
 
+        /// <summary>
+        /// Computes mitigated base hit damage before dodge, random variance, and critical hit rolls.
+        /// </summary>
+        /// <param name="attacker">Attacking combatant snapshot.</param>
+        /// <param name="defender">Defending combatant snapshot.</param>
+        /// <param name="options">Formula configuration and minimum damage floor.</param>
+        /// <param name="customFormula">Optional custom formula overriding built-in mitigation modes.</param>
+        /// <returns>Mitigated base damage clamped to at least <see cref="CombatSimulationOptions.minDamageFloor"/>.</returns>
         public double ComputeMitigatedBaseDamage(
             in CombatStatSnapshot attacker,
             in CombatStatSnapshot defender,
@@ -164,6 +217,9 @@ namespace GameBalancer.Combat
             }
         }
 
+        /// <summary>
+        /// Resolves a single attack event including dodge check, base mitigation, random variance, and critical multiplier.
+        /// </summary>
         private double RollHitDamage(
             in CombatStatSnapshot attacker,
             in CombatStatSnapshot defender,

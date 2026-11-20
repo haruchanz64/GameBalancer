@@ -3,12 +3,24 @@ using System.Collections.Generic;
 
 namespace GameBalancer.Loot
 {
+    /// <summary>
+    /// Outcome of a single loot roll, including the selected entry, rolled stack quantity, and pity flag.
+    /// </summary>
     public readonly struct LootDropResult
     {
+        /// <summary>Selected loot entry, or <c>null</c> when the table has no positive-weight entries.</summary>
         public readonly WeightedLootEntry Entry;
+        /// <summary>Rolled item quantity between the entry's <c>minQuantity</c> and <c>maxQuantity</c> (inclusive).</summary>
         public readonly int Quantity;
+        /// <summary><c>true</c> if this drop occurred on or after the configured soft/hard pity threshold.</summary>
         public readonly bool TriggeredPity;
 
+        /// <summary>
+        /// Creates a new loot drop result snapshot.
+        /// </summary>
+        /// <param name="entry">Selected loot entry.</param>
+        /// <param name="quantity">Rolled item count.</param>
+        /// <param name="triggeredPity">Whether soft or hard pity was active on the winning pull.</param>
         public LootDropResult(WeightedLootEntry entry, int quantity, bool triggeredPity)
         {
             Entry = entry;
@@ -25,6 +37,9 @@ namespace GameBalancer.Loot
     {
         public int pullsSinceTarget;
 
+        /// <summary>
+        /// Resets <see cref="pullsSinceTarget"/> to zero.
+        /// </summary>
         public void Reset() => pullsSinceTarget = 0;
     }
 
@@ -36,11 +51,21 @@ namespace GameBalancer.Loot
     {
         private readonly System.Random _rng;
 
+        /// <summary>
+        /// Initializes a new <see cref="LootRoller"/> with an optional fixed PRNG seed for deterministic replays.
+        /// </summary>
+        /// <param name="seed">Optional seed passed to <see cref="System.Random"/>; omit for time-based seeding.</param>
         public LootRoller(int? seed = null)
         {
             _rng = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
         }
 
+        /// <summary>
+        /// Performs a single weighted roll against a <see cref="LootTableAsset"/> using its configured <see cref="PityRule"/>.
+        /// </summary>
+        /// <param name="table">Loot table asset to roll from.</param>
+        /// <param name="pityState">Optional mutable pity counter updated in place; required for soft/hard pity progression.</param>
+        /// <returns>The rolled drop, or <c>default</c> if <paramref name="table"/> is null or empty.</returns>
         public LootDropResult Roll(LootTableAsset table, PityState pityState = null)
         {
             if (table == null || table.entries == null || table.entries.Count == 0)
@@ -51,6 +76,13 @@ namespace GameBalancer.Loot
             return Roll(table.entries, table.pityRule, pityState);
         }
 
+        /// <summary>
+        /// Performs a single weighted roll against raw entries with optional soft and hard pity tracking.
+        /// </summary>
+        /// <param name="entries">Weighted entries to roll from; entries with weight &lt;= 0 are ignored.</param>
+        /// <param name="pityRule">Optional pity configuration boosting or guaranteeing the target rarity.</param>
+        /// <param name="pityState">Optional mutable pull streak counter reset on target-rarity hits and incremented on misses.</param>
+        /// <returns>The rolled drop, or <c>default</c> if no positive-weight entries exist.</returns>
         public LootDropResult Roll(
             IReadOnlyList<WeightedLootEntry> entries,
             PityRule pityRule = null,
@@ -124,6 +156,9 @@ namespace GameBalancer.Loot
         /// <summary>
         /// Draws up to <paramref name="count"/> unique entries without replacement (for chests or card packs).
         /// </summary>
+        /// <param name="entries">Candidate weighted entries; only entries with positive weight enter the draw pool.</param>
+        /// <param name="count">Maximum number of unique entries to draw.</param>
+        /// <returns>List of drawn drops, capped at the number of positive-weight entries.</returns>
         public List<LootDropResult> RollWithoutReplacement(IReadOnlyList<WeightedLootEntry> entries, int count)
         {
             var results = new List<LootDropResult>();
@@ -154,6 +189,9 @@ namespace GameBalancer.Loot
         /// Pseudo-Random Distribution (PRD) proc roll: chance grows linearly with consecutive misses
         /// using constant C calibrated to the target nominal probability p.
         /// </summary>
+        /// <param name="nominalProbability">Long-run target trigger probability in [0, 1].</param>
+        /// <param name="consecutiveMisses">Mutable miss streak reset to 0 on a proc and incremented on a miss.</param>
+        /// <returns><c>true</c> if the proc triggered on this roll; otherwise <c>false</c>.</returns>
         public bool RollPseudoRandomProc(double nominalProbability, ref int consecutiveMisses)
         {
             double p = System.Math.Clamp(nominalProbability, 0d, 1d);
@@ -176,6 +214,12 @@ namespace GameBalancer.Loot
             return false;
         }
 
+        /// <summary>
+        /// Solves for the Pseudo-Random Distribution base increment constant <c>C</c> whose expected long-run
+        /// trigger rate matches <paramref name="targetProbability"/> using 40 iterations of binary search.
+        /// </summary>
+        /// <param name="targetProbability">Desired average proc probability, clamped to [0.0001, 1].</param>
+        /// <returns>Calibrated PRD step constant <c>C</c> such that attempt <c>n</c> triggers with probability <c>min(1, n * C)</c>.</returns>
         public static double ComputePrdConstant(double targetProbability)
         {
             double p = System.Math.Clamp(targetProbability, 0.0001d, 1d);
@@ -193,6 +237,9 @@ namespace GameBalancer.Loot
             return (lo + hi) * 0.5d;
         }
 
+        /// <summary>
+        /// Computes the exact long-run proc probability <c>1 / E[N]</c> for a given PRD constant <paramref name="c"/>.
+        /// </summary>
         private static double ComputeExpectedProbabilityFromC(double c)
         {
             if (c <= 0d) return 0d;
@@ -211,6 +258,9 @@ namespace GameBalancer.Loot
             return pSum > 0d ? 1d / pSum : 0d;
         }
 
+        /// <summary>
+        /// Selects one entry from <paramref name="entries"/> proportional to its positive weight.
+        /// </summary>
         private WeightedLootEntry RollWeighted(IReadOnlyList<WeightedLootEntry> entries)
         {
             double total = 0d;
@@ -243,6 +293,9 @@ namespace GameBalancer.Loot
             return lastValid;
         }
 
+        /// <summary>
+        /// Performs a weighted roll restricted to entries matching <paramref name="rarity"/> (case-insensitive).
+        /// </summary>
         private WeightedLootEntry RollWithinRarity(IReadOnlyList<WeightedLootEntry> entries, string rarity)
         {
             var filtered = new List<WeightedLootEntry>();
@@ -257,6 +310,9 @@ namespace GameBalancer.Loot
             return RollWeighted(filtered);
         }
 
+        /// <summary>
+        /// Performs a weighted roll restricted to entries whose rarity does not match <paramref name="rarity"/>.
+        /// </summary>
         private WeightedLootEntry RollExcludingRarity(IReadOnlyList<WeightedLootEntry> entries, string rarity)
         {
             var filtered = new List<WeightedLootEntry>();
@@ -271,6 +327,9 @@ namespace GameBalancer.Loot
             return filtered.Count > 0 ? RollWeighted(filtered) : null;
         }
 
+        /// <summary>
+        /// Computes the combined weight share of all positive-weight entries matching <paramref name="rarity"/>.
+        /// </summary>
         private static double ComputeRarityProbability(IReadOnlyList<WeightedLootEntry> entries, string rarity)
         {
             double total = 0d;
@@ -288,6 +347,9 @@ namespace GameBalancer.Loot
             return total > 0d ? match / total : 0d;
         }
 
+        /// <summary>
+        /// Rolls an inclusive stack quantity between <c>minQuantity</c> and <c>maxQuantity</c> (minimum 1).
+        /// </summary>
         private int RollQuantity(WeightedLootEntry entry)
         {
             int min = System.Math.Max(1, entry.minQuantity);

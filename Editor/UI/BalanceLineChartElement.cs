@@ -6,10 +6,16 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.UI
 {
+    /// <summary>
+    /// Single plotted line series rendered by <see cref="BalanceLineChartElement"/>.
+    /// </summary>
     public sealed class ChartSeries
     {
+        /// <summary>Legend label displayed above the chart canvas.</summary>
         public string Label;
+        /// <summary>Stroke color used for both the legend swatch and plotted polyline.</summary>
         public Color Color;
+        /// <summary>Ordered Y-axis samples spaced evenly across the horizontal plot width.</summary>
         public double[] Values;
     }
 
@@ -28,6 +34,10 @@ namespace GameBalancer.Editor.UI
         private string _xStartLabel = "1";
         private string _xEndLabel = "50";
 
+        /// <summary>
+        /// Creates a new vector line chart element with a legend header, canvas, and range caption.
+        /// </summary>
+        /// <param name="height">Fixed height in pixels for the inner plotting canvas.</param>
         public BalanceLineChartElement(float height = 220f)
         {
             AddToClassList("gb-chart-container");
@@ -47,6 +57,14 @@ namespace GameBalancer.Editor.UI
             Add(_rangeLabel);
         }
 
+        /// <summary>
+        /// Replaces the plotted series and axis metadata, rebuilds the legend, and schedules a canvas repaint.
+        /// </summary>
+        /// <param name="series">Line series to plot; null or empty entries are ignored.</param>
+        /// <param name="xStartLabel">Left-edge X-axis caption label.</param>
+        /// <param name="xEndLabel">Right-edge X-axis caption label.</param>
+        /// <param name="thresholdY">Optional horizontal reference threshold line drawn across the chart.</param>
+        /// <param name="thresholdLabel">Label describing <paramref name="thresholdY"/> in the footer caption.</param>
         public void SetData(
             IReadOnlyList<ChartSeries> series,
             string xStartLabel,
@@ -75,6 +93,9 @@ namespace GameBalancer.Editor.UI
             _canvas.MarkDirtyRepaint();
         }
 
+        /// <summary>
+        /// Rebuilds the color-coded legend badges and updates the X/Y range summary label.
+        /// </summary>
         private void RebuildLegend()
         {
             _legendRow.Clear();
@@ -116,6 +137,9 @@ namespace GameBalancer.Editor.UI
             _rangeLabel.text = $"X: [{_xStartLabel} .. {_xEndLabel}]  |  Y: [{minV:F1} .. {maxV:F1}]{threshText}";
         }
 
+        /// <summary>
+        /// Renders the background grid lines, optional horizontal threshold line, and all series polylines via <see cref="Painter2D"/>.
+        /// </summary>
         private void OnGenerateVisualContent(MeshGenerationContext ctx)
         {
             Rect r = _canvas.contentRect;

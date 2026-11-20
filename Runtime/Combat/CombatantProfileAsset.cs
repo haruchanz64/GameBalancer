@@ -34,8 +34,15 @@ namespace GameBalancer.Combat
         public ProgressionCurveAsset attackCurveOverride;
         public ProgressionCurveAsset defenseCurveOverride;
 
+        /// <inheritdoc/>
         public string DisplayName => string.IsNullOrWhiteSpace(combatantName) ? name : combatantName;
 
+        /// <summary>
+        /// Evaluates level-scaled HP, attack, and defense using curve overrides when assigned,
+        /// falling back to linear per-level growth, and clamps combat rates to valid ranges.
+        /// </summary>
+        /// <param name="level">1-based level to evaluate (values below 1 are clamped to 1).</param>
+        /// <returns>Clamped <see cref="CombatStatSnapshot"/> ready for simulation.</returns>
         public CombatStatSnapshot EvaluateStatsAtLevel(int level)
         {
             int lvl = System.Math.Max(1, level);

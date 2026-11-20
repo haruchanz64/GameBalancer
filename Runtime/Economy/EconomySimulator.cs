@@ -4,6 +4,9 @@ using GameBalancer.Math;
 
 namespace GameBalancer.Economy
 {
+    /// <summary>
+    /// Daily currency snapshot recording inflows, outflows, net delta, ending balance, and mandatory-sink starvation.
+    /// </summary>
     [Serializable]
     public sealed class EconomyDaySample
     {
@@ -15,6 +18,9 @@ namespace GameBalancer.Economy
         public bool starvedMandatorySink;
     }
 
+    /// <summary>
+    /// Aggregated simulation timeline and diagnostic flags for a single currency.
+    /// </summary>
     [Serializable]
     public sealed class CurrencySimulationSeries
     {
@@ -30,6 +36,9 @@ namespace GameBalancer.Economy
         public List<EconomyDaySample> timeline = new List<EconomyDaySample>();
     }
 
+    /// <summary>
+    /// Multi-currency economy simulation report including per-currency timelines and diagnostic warnings.
+    /// </summary>
     [Serializable]
     public sealed class EconomySimulationReport
     {
@@ -44,12 +53,28 @@ namespace GameBalancer.Economy
     /// </summary>
     public static class EconomySimulator
     {
+        /// <summary>
+        /// Simulates an <see cref="EconomyModelAsset"/> over <paramref name="horizonDays"/> days.
+        /// </summary>
+        /// <param name="model">Economy model asset containing currencies and flow nodes.</param>
+        /// <param name="horizonDays">Number of days/sessions to simulate (clamped to at least 1).</param>
+        /// <returns>Completed <see cref="EconomySimulationReport"/>.</returns>
         public static EconomySimulationReport Simulate(EconomyModelAsset model, int horizonDays = 60)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
             return Simulate(model.modelName, model.currencies, model.flows, horizonDays);
         }
 
+        /// <summary>
+        /// Simulates faucet and sink nodes for every currency in <paramref name="currencies"/> across <paramref name="horizonDays"/> days.
+        /// Faucets are always evaluated before sinks on the same day. Inflation is flagged when ending balance exceeds
+        /// <see cref="CurrencyDefinition.inflationAlertThreshold"/> and total inflow exceeds 1.25x total outflow.
+        /// </summary>
+        /// <param name="modelName">Display label recorded on the report.</param>
+        /// <param name="currencies">Currencies to track independently.</param>
+        /// <param name="flows">Faucet and sink flow nodes matched to currencies case-insensitively by <c>currencyId</c>.</param>
+        /// <param name="horizonDays">Number of days/sessions to simulate (clamped to at least 1).</param>
+        /// <returns>Completed <see cref="EconomySimulationReport"/> with daily timelines and inflation/starvation warnings.</returns>
         public static EconomySimulationReport Simulate(
             string modelName,
             IReadOnlyList<CurrencyDefinition> currencies,
@@ -178,6 +203,9 @@ namespace GameBalancer.Economy
             return report;
         }
 
+        /// <summary>
+        /// Determines whether <paramref name="node"/> fires on the specified 1-based <paramref name="day"/>.
+        /// </summary>
         private static bool TriggersOnDay(EconomyFlowNode node, int day)
         {
             int interval = System.Math.Max(1, node.intervalOrDay);
@@ -194,6 +222,10 @@ namespace GameBalancer.Economy
             }
         }
 
+        /// <summary>
+        /// Evaluates a flow node's non-negative currency amount using either its flat value or math formula
+        /// (exposing <c>day</c>, <c>session</c>, <c>level</c>, and current <c>balance</c>).
+        /// </summary>
         private static double EvaluateFlowAmount(
             EconomyFlowNode node,
             int day,

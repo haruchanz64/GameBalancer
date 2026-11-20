@@ -24,6 +24,9 @@ namespace GameBalancer.Editor
         private GameBalancerHost _host;
         private IGameBalancerModule _activeModule;
 
+        /// <summary>
+        /// Opens or focuses the GameBalancer Workbench window from the Unity menu bar.
+        /// </summary>
         [MenuItem("Tools/HaruChanZ64/Gameplay/GameBalancer/Balance Workbench", false, 136)]
         public static void ShowWindow()
         {
@@ -32,6 +35,11 @@ namespace GameBalancer.Editor
             window.Show();
         }
 
+        /// <summary>
+        /// Opens or focuses the GameBalancer Workbench and routes <paramref name="asset"/> to the first module
+        /// whose <see cref="IGameBalancerModule.TryAcceptAsset"/> returns <c>true</c>.
+        /// </summary>
+        /// <param name="asset">ScriptableObject asset to load into its matching balancing module.</param>
         public static void OpenWithAsset(UnityEngine.Object asset)
         {
             var window = GetWindow<GameBalancerWindow>("GameBalancer");
@@ -40,6 +48,10 @@ namespace GameBalancer.Editor
             window.RouteAssetToModule(asset);
         }
 
+        /// <summary>
+        /// Builds the Workbench UI Toolkit layout, discovers all <see cref="IGameBalancerModule"/> implementations,
+        /// and selects the first discovered module.
+        /// </summary>
         public void CreateGUI()
         {
             rootVisualElement.Clear();
@@ -105,6 +117,12 @@ namespace GameBalancer.Editor
             }
         }
 
+        /// <summary>
+        /// Discovers and instantiates all concrete parameterless <see cref="IGameBalancerModule"/> types across
+        /// loaded Editor assemblies via <see cref="TypeCache"/>, sorted by <see cref="IGameBalancerModule.SortOrder"/>
+        /// and then ordinal <see cref="IGameBalancerModule.DisplayName"/>.
+        /// </summary>
+        /// <returns>Sorted list of instantiated module instances.</returns>
         public static List<IGameBalancerModule> DiscoverAllModules()
         {
             var found = new List<IGameBalancerModule>();
@@ -138,6 +156,9 @@ namespace GameBalancer.Editor
             return found;
         }
 
+        /// <summary>
+        /// Clears cached views and reloads all discovered modules for the current window instance.
+        /// </summary>
         private void DiscoverModules()
         {
             _modules.Clear();
@@ -146,6 +167,9 @@ namespace GameBalancer.Editor
             _modules.AddRange(DiscoverAllModules());
         }
 
+        /// <summary>
+        /// Populates the left navigation sidebar with one button per discovered module.
+        /// </summary>
         private void BuildSidebar()
         {
             _sidebar.Clear();
@@ -166,6 +190,9 @@ namespace GameBalancer.Editor
             }
         }
 
+        /// <summary>
+        /// Activates <paramref name="module"/>, lazily creating and caching its UI view, then calls <see cref="IGameBalancerModule.OnRefresh"/>.
+        /// </summary>
         private void SelectModule(IGameBalancerModule module)
         {
             if (module == null) return;
@@ -194,6 +221,9 @@ namespace GameBalancer.Editor
             module.OnRefresh();
         }
 
+        /// <summary>
+        /// Iterates discovered modules in sort order, instantiating views as needed, until one accepts <paramref name="asset"/>.
+        /// </summary>
         private void RouteAssetToModule(UnityEngine.Object asset)
         {
             if (asset == null) return;
@@ -214,6 +244,9 @@ namespace GameBalancer.Editor
             }
         }
 
+        /// <summary>
+        /// Loads <c>GameBalancerStyles.uss</c> from the UPM package path (with an AssetDatabase search fallback) and attaches it to <paramref name="target"/>.
+        /// </summary>
         private static void AttachStyleSheet(VisualElement target)
         {
             const string packagePath = "Packages/com.haruchanz64.game-balancer/Editor/UI/GameBalancerStyles.uss";

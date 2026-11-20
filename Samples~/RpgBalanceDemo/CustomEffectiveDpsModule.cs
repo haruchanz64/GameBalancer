@@ -10,9 +10,13 @@ namespace GameBalancer.Samples
     /// </summary>
     public sealed class CustomEffectiveDpsModule : IGameBalancerModule
     {
+        /// <inheritdoc/>
         public string ModuleId => "sample.effective-dps";
+        /// <inheritdoc/>
         public string DisplayName => "Effective DPS (Sample)";
+        /// <inheritdoc/>
         public string Description => "Example custom IGameBalancerModule computing expected DPS from attack, speed, and crit stats.";
+        /// <inheritdoc/>
         public int SortOrder => 100;
 
         private FloatField _atkField;
@@ -21,6 +25,7 @@ namespace GameBalancer.Samples
         private FloatField _critMultField;
         private Label _outputLabel;
 
+        /// <inheritdoc/>
         public VisualElement CreateView(GameBalancerHost host)
         {
             var root = new VisualElement();
@@ -54,10 +59,15 @@ namespace GameBalancer.Samples
             return root;
         }
 
+        /// <inheritdoc/>
         public void OnRefresh() => Recalculate();
 
+        /// <inheritdoc/>
         public bool TryAcceptAsset(UnityEngine.Object asset) => false;
 
+        /// <summary>
+        /// Computes expected DPS as <c>attack * attackSpeed * (1 + critChance * (critMultiplier - 1))</c>.
+        /// </summary>
         private void Recalculate()
         {
             if (_outputLabel == null) return;

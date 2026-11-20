@@ -10,11 +10,19 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.Modules
 {
+    /// <summary>
+    /// Built-in GameBalancer Workbench module for running Monte Carlo loot roll simulations,
+    /// tuning soft/hard pity rules, and inspecting pulls-to-target percentiles.
+    /// </summary>
     public sealed class LootModule : IGameBalancerModule
     {
+        /// <inheritdoc/>
         public string ModuleId => "builtin.loot";
+        /// <inheritdoc/>
         public string DisplayName => "Loot & Pity Odds";
+        /// <inheritdoc/>
         public string Description => "Compare exact weighted drop rates against Monte Carlo trials, soft/hard pity rules, and P50/P90/P99 pulls-to-target.";
+        /// <inheritdoc/>
         public int SortOrder => 20;
 
         private GameBalancerHost _host;
@@ -28,6 +36,7 @@ namespace GameBalancer.Editor.Modules
         private VisualElement _barsContainer;
         private LootAnalysisReport _lastReport;
 
+        /// <inheritdoc/>
         public VisualElement CreateView(GameBalancerHost host)
         {
             _host = host;
@@ -102,8 +111,10 @@ namespace GameBalancer.Editor.Modules
             return root;
         }
 
+        /// <inheritdoc/>
         public void OnRefresh() => RunSimulation();
 
+        /// <inheritdoc/>
         public bool TryAcceptAsset(UnityEngine.Object asset)
         {
             if (asset is LootTableAsset table && _tableField != null)
@@ -114,6 +125,9 @@ namespace GameBalancer.Editor.Modules
             return false;
         }
 
+        /// <summary>
+        /// Runs <see cref="LootOddsAnalyzer.Analyze"/> using the assigned table (or a 4-tier demo table) and current UI pity controls.
+        /// </summary>
         private void RunSimulation()
         {
             if (_barsContainer == null) return;
@@ -136,6 +150,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Simulated {_lastReport.totalRolls:N0} rolls on '{_lastReport.tableName}'.");
         }
 
+        /// <summary>
+        /// Populates expected-value and pulls-to-target KPI cards plus theoretical vs. simulated comparison bars for each entry.
+        /// </summary>
         private void RenderReport()
         {
             _kpiRow.Clear();
@@ -194,6 +211,9 @@ namespace GameBalancer.Editor.Modules
             _kpiRow.Add(card);
         }
 
+        /// <summary>
+        /// Copies the Markdown-formatted loot report to the system clipboard.
+        /// </summary>
         private void CopyMarkdown()
         {
             if (_lastReport == null) return;
@@ -201,6 +221,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus("Copied Loot Odds Markdown report to clipboard.");
         }
 
+        /// <summary>
+        /// Opens a save dialog and writes the latest <see cref="LootAnalysisReport"/> as JSON.
+        /// </summary>
         private void ExportJson()
         {
             if (_lastReport == null) return;
@@ -210,6 +233,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Exported JSON to {path}");
         }
 
+        /// <summary>
+        /// Builds the fallback 4-tier chest entries used when no <see cref="LootTableAsset"/> is assigned.
+        /// </summary>
         private static List<WeightedLootEntry> BuildDefaultEntries() => new List<WeightedLootEntry>
         {
             new WeightedLootEntry { itemId = "common_scrap", displayName = "Iron Scrap", rarity = "Common", weight = 65f, valueScore = 10f },

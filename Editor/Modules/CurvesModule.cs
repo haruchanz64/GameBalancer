@@ -12,13 +12,24 @@ using UnityEngine.UIElements;
 
 namespace GameBalancer.Editor.Modules
 {
+    /// <summary>
+    /// Built-in GameBalancer Workbench module for plotting <see cref="ProgressionCurveAsset"/> curves,
+    /// validating scratchpad math formulas, inspecting A/B ratios, and exporting CSV or JSON.
+    /// </summary>
     public sealed class CurvesModule : IGameBalancerModule
     {
+        /// <inheritdoc/>
         public string ModuleId => "builtin.curves";
+        /// <inheritdoc/>
         public string DisplayName => "Curves & Formulas";
+        /// <inheritdoc/>
         public string Description => "Compare progression curves, validate custom math expressions, inspect ratios, and export CSV/JSON.";
+        /// <inheritdoc/>
         public int SortOrder => 10;
 
+        /// <summary>
+        /// Adapts a freeform scratchpad expression string into an <see cref="IProgressionCurve"/> for comparison plotting.
+        /// </summary>
         private sealed class ExpressionCurveAdapter : IProgressionCurve
         {
             public string DisplayName { get; }
@@ -34,6 +45,7 @@ namespace GameBalancer.Editor.Modules
                 _growth = growth;
             }
 
+            /// <inheritdoc/>
             public double Evaluate(int level)
             {
                 var vars = new Dictionary<string, double>(4)
@@ -61,6 +73,7 @@ namespace GameBalancer.Editor.Modules
         private VisualElement _tableContainer;
         private CurveComparisonReport _lastReport;
 
+        /// <inheritdoc/>
         public VisualElement CreateView(GameBalancerHost host)
         {
             _host = host;
@@ -140,8 +153,10 @@ namespace GameBalancer.Editor.Modules
             return root;
         }
 
+        /// <inheritdoc/>
         public void OnRefresh() => EvaluateAndRender();
 
+        /// <inheritdoc/>
         public bool TryAcceptAsset(UnityEngine.Object asset)
         {
             if (asset is ProgressionCurveAsset curve && _curveAField != null)
@@ -153,6 +168,10 @@ namespace GameBalancer.Editor.Modules
             return false;
         }
 
+        /// <summary>
+        /// Validates the scratchpad formula, evaluates assigned curves across the selected level range
+        /// (capped at a 500-level span), and refreshes the chart, KPI cards, and milestone list.
+        /// </summary>
         private void EvaluateAndRender()
         {
             if (_chart == null) return;
@@ -232,6 +251,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Evaluated {_lastReport.series.Count} curve(s) across levels {minLvl}..{maxLvl}.");
         }
 
+        /// <summary>
+        /// Rebuilds per-series min/max and cumulative sum KPI cards.
+        /// </summary>
         private void RenderKpis()
         {
             _kpiRow.Clear();
@@ -244,6 +266,9 @@ namespace GameBalancer.Editor.Modules
             }
         }
 
+        /// <summary>
+        /// Renders roughly ten evenly spaced milestone rows summarizing curve and ratio values across the range.
+        /// </summary>
         private void RenderMilestoneTable()
         {
             _tableContainer.Clear();
@@ -267,6 +292,9 @@ namespace GameBalancer.Editor.Modules
             }
         }
 
+        /// <summary>
+        /// Opens a save dialog and writes the latest <see cref="CurveComparisonReport"/> as CSV.
+        /// </summary>
         private void ExportCsv()
         {
             if (_lastReport == null) return;
@@ -276,6 +304,9 @@ namespace GameBalancer.Editor.Modules
             _host?.SetStatus($"Exported CSV to {path}");
         }
 
+        /// <summary>
+        /// Opens a save dialog and writes the latest <see cref="CurveComparisonReport"/> as pretty-printed JSON.
+        /// </summary>
         private void ExportJson()
         {
             if (_lastReport == null) return;

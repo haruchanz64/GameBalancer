@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] - 2026-11-20
+### Documentation
+- Upgraded `README.md` into a full developer guide covering architecture, math expression variables, loot pity and PRD behavior, combat and economy simulation rules, verified C# code examples, extension contracts, samples, tests, and troubleshooting.
+- Added XML doc comments across all public types, methods, constructors, properties, key struct fields, and non-trivial internal/private helpers in `Runtime/`, `Editor/`, and `Samples~/`.
+
 ## [1.0.0] - 2026-03-07
 ### Added
 - Recursive-descent `MathExpressionEvaluator` supporting arithmetic operators, exponentiation, named variables, and common math functions.
